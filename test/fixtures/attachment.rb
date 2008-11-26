@@ -33,9 +33,22 @@ class ImageOrPdfAttachment < Attachment
 end
 
 class ImageWithThumbsAttachment < Attachment
-  has_attachment :thumbnails => { :thumb => [50, 50], :geometry => 'x50' }, :resize_to => [55,55]
+  has_attachment :resize_to => [55,55],
+    :thumbnails => {
+      :thumb => [50, 50],
+      :geometry => 'x50',
+      :proc => Proc.new { |record, img|
+        img.crop!(5, 5, 25, 25, true)
+      },
+      :symbol => :custom_thumbnail_cropper
+    }
+
   after_resize do |record, img|
    # record.aspect_ratio = img.columns.to_f / img.rows.to_f
+  end
+
+  def custom_thumbnail_cropper(img)
+    img.crop!(5, 5, 30, 30, true)
   end
 end
 
@@ -51,9 +64,20 @@ end
 
 class ImageWithThumbsFileAttachment < FileAttachment
   has_attachment :path_prefix => 'vendor/plugins/attachment_fu/test/files',
-    :thumbnails => { :thumb => [50, 50], :geometry => 'x50' }, :resize_to => [55,55]
+    :thumbnails => {
+      :thumb => [50, 50],
+      :geometry => 'x50',
+      :proc => Proc.new { |record, img|
+        img.crop!(5, 5, 25, 25, true)
+      },
+      :symbol => :custom_thumbnail_cropper
+    }, :resize_to => [55,55]
   after_resize do |record, img|
   #  record.aspect_ratio = img.columns.to_f / img.rows.to_f
+  end
+
+  def custom_thumbnail_cropper(img)
+    img.crop!(5, 5, 30, 30, true)
   end
 end
 

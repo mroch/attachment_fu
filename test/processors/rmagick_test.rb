@@ -98,16 +98,20 @@ class RmagickTest < Test::Unit::TestCase
     
     def test_should_give_correct_thumbnail_filenames(klass = ImageWithThumbsFileAttachment)
       attachment_model klass
-      assert_created 3 do
+      assert_created 5 do
         attachment = upload_file :filename => '/files/rails.png'
         thumb      = attachment.thumbnails.detect { |t| t.filename =~ /_thumb/ }
         geo        = attachment.thumbnails.detect { |t| t.filename =~ /_geometry/ }
+        proc       = attachment.thumbnails.detect { |t| t.filename =~ /_proc/ }
+        symbol     = attachment.thumbnails.detect { |t| t.filename =~ /_symbol/ }
         
         [attachment, thumb, geo].each { |record| assert_valid record }
     
         assert_match /rails\.png$/,          attachment.full_filename
         assert_match /rails_geometry\.png$/, attachment.full_filename(:geometry)
         assert_match /rails_thumb\.png$/,    attachment.full_filename(:thumb)
+        assert_match /rails_proc\.png$/,     attachment.full_filename(:proc)
+        assert_match /rails_symbol\.png$/,   attachment.full_filename(:symbol)
       end
     end
     
@@ -115,14 +119,14 @@ class RmagickTest < Test::Unit::TestCase
     
     def test_should_automatically_create_thumbnails(klass = ImageWithThumbsAttachment)
       attachment_model klass
-      assert_created 3 do
+      assert_created 5 do
         attachment = upload_file :filename => '/files/rails.png'
         assert_valid attachment
         assert !attachment.size.zero?
         #assert_equal 1784, attachment.size
         assert_equal 55,   attachment.width
         assert_equal 55,   attachment.height
-        assert_equal 2,    attachment.thumbnails.length
+        assert_equal 4,    attachment.thumbnails.length
         assert_equal 1.0,  attachment.aspect_ratio
         
         thumb = attachment.thumbnails.detect { |t| t.filename =~ /_thumb/ }
@@ -140,6 +144,20 @@ class RmagickTest < Test::Unit::TestCase
         assert_equal 50,   geo.width
         assert_equal 50,   geo.height
         assert_equal 1.0,  geo.aspect_ratio
+        
+        proc  = attachment.thumbnails.detect { |t| t.filename =~ /_proc/ }
+        assert !proc.new_record?, proc.errors.full_messages.join("\n")
+        assert !proc.size.zero?
+        assert_equal 25,   proc.width
+        assert_equal 25,   proc.height
+        assert_equal 1.0,  proc.aspect_ratio
+        
+        symbol     = attachment.thumbnails.detect { |t| t.filename =~ /_symbol/ }
+        assert !symbol.new_record?, symbol.errors.full_messages.join("\n")
+        assert !symbol.size.zero?
+        assert_equal 30,   symbol.width
+        assert_equal 30,   symbol.height
+        assert_equal 1.0,  symbol.aspect_ratio
       end
     end
     
@@ -172,7 +190,7 @@ class RmagickTest < Test::Unit::TestCase
     def test_should_remove_old_thumbnail_files_when_updating(klass = ImageWithThumbsFileAttachment)
       attachment_model klass
       attachment = nil
-      assert_created 3 do
+      assert_created 5 do
         attachment = upload_file :filename => '/files/rails.png'
       end
     
@@ -214,7 +232,7 @@ class RmagickTest < Test::Unit::TestCase
     def test_should_overwrite_old_thumbnail_records_when_updating(klass = ImageWithThumbsAttachment)
       attachment_model klass
       attachment = nil
-      assert_created 3 do
+      assert_created 5 do
         attachment = upload_file :filename => '/files/rails.png'
       end
       assert_not_created do # no new db_file records
@@ -235,7 +253,7 @@ class RmagickTest < Test::Unit::TestCase
     def test_should_overwrite_old_thumbnail_records_when_renaming(klass = ImageWithThumbsAttachment)
       attachment_model klass
       attachment = nil
-      assert_created 3 do
+      assert_created 5 do
         attachment = upload_file :class => klass, :filename => '/files/rails.png'
       end
       assert_not_created do # no new db_file records
