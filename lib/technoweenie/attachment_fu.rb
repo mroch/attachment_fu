@@ -91,8 +91,8 @@ module Technoweenie # :nodoc:
 
         attr_accessor :thumbnail_resize_options
 
-        attachment_options[:storage]     ||= (attachment_options[:file_system_path] || attachment_options[:path_prefix]) ? :file_system : :db_file
-        attachment_options[:storage]     ||= parent_options[:storage]
+        attachment_options[:storage]     ||= :file_system if attachment_options[:file_system_path] || attachment_options[:path_prefix]
+        attachment_options[:storage]     ||= parent_options[:storage] || :db_file
         attachment_options[:path_prefix] ||= attachment_options[:file_system_path]
         if attachment_options[:path_prefix].nil?
           attachment_options[:path_prefix] = attachment_options[:storage] == :s3 ? table_name : File.join("public", table_name)
