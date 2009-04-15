@@ -19,9 +19,11 @@ module Technoweenie # :nodoc:
           def process_attachment_with_processing
             return unless process_attachment_without_processing && image?
             with_image do |img|
+              callback_with_args :before_resize, img
               self.width  = img.width  if respond_to?(:width)
               self.height = img.height if respond_to?(:height)
               resize_image_or_thumbnail! img
+              callback_with_args :after_resize, img
             end
           end
 
@@ -40,7 +42,6 @@ module Technoweenie # :nodoc:
               self.height = img.height if respond_to?(:height)
               img.save self.temp_path
               self.size = File.size(self.temp_path)
-              callback_with_args :after_resize, img
             end
 
             size = size.first if size.is_a?(Array) && size.length == 1

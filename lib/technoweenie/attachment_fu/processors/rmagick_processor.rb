@@ -29,6 +29,7 @@ module Technoweenie # :nodoc:
         def process_attachment_with_processing
           return unless process_attachment_without_processing
           with_image do |img|
+            callback_with_args :before_resize, img
             resize_image_or_thumbnail! img
             self.width  = img.columns if respond_to?(:width)
             self.height = img.rows    if respond_to?(:height)

@@ -185,11 +185,23 @@ module Technoweenie # :nodoc:
         base.after_validation :process_attachment
         base.attr_accessible :uploaded_data
         if defined?(::ActiveSupport::Callbacks)
-          base.define_callbacks :after_resize, :after_attachment_saved, :before_thumbnail_saved
+          base.define_callbacks :before_resize, :after_resize, :after_attachment_saved, :before_thumbnail_saved
         end
       end
 
       unless defined?(::ActiveSupport::Callbacks)
+        # Callback before an image is resized.
+        #
+        #   class Foo < ActiveRecord::Base
+        #     acts_as_attachment
+        #     before_resize do |record, img|
+        #       img.rotate!(90)
+        #     end
+        #   end
+        def before_resize(&block)
+          write_inheritable_array(:before_resize, [block])
+        end
+        
         # Callback after an image has been resized.
         #
         #   class Foo < ActiveRecord::Base
@@ -256,7 +268,7 @@ module Technoweenie # :nodoc:
 
     module InstanceMethods
       def self.included(base)
-        base.define_callbacks *[:after_resize, :after_attachment_saved, :before_thumbnail_saved] if base.respond_to?(:define_callbacks)
+        base.define_callbacks *[:before_resize, :after_resize, :after_attachment_saved, :before_thumbnail_saved] if base.respond_to?(:define_callbacks)
       end
 
       # Checks whether the attachment's content type is an image content type
