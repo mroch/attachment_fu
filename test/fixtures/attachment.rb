@@ -57,6 +57,38 @@ class FileAttachment < ActiveRecord::Base
   validates_as_attachment
 end
 
+class FileAttachmentWithStringId < ActiveRecord::Base
+  set_table_name 'file_attachments_with_string_id'
+  has_attachment :path_prefix => 'vendor/plugins/attachment_fu/test/files', :processor => :rmagick
+  validates_as_attachment
+  
+  before_validation :auto_generate_id
+  before_save :auto_generate_id
+  @@last_id = 0
+  
+  private
+    def auto_generate_id
+      @@last_id += 1
+      self.id = "id_#{@@last_id}"
+    end
+end
+
+class FileAttachmentWithUuid < ActiveRecord::Base
+  set_table_name 'file_attachments_with_string_id'
+  has_attachment :path_prefix => 'vendor/plugins/attachment_fu/test/files', :processor => :rmagick, :uuid_primary_key => true
+  validates_as_attachment
+  
+  before_validation :auto_generate_id
+  before_save :auto_generate_id
+  @@last_id = 0
+  
+  private
+    def auto_generate_id
+      @@last_id += 1
+      self.id = "%0127dx" % @@last_id
+    end
+end
+
 class ImageFileAttachment < FileAttachment
   has_attachment :path_prefix => 'vendor/plugins/attachment_fu/test/files',
     :content_type => :image, :resize_to => [50,50]
@@ -197,11 +229,22 @@ begin
     has_attachment :storage => :s3, :processor => :rmagick, :s3_config_path => File.join(File.dirname(__FILE__), '../amazon_s3.yml')
     validates_as_attachment
   end
+  
+  class CloudFilesAttachment < ActiveRecord::Base
+    has_attachment :storage => :cloud_files, :processor => :rmagick, :cloudfiles_config_path => File.join(File.dirname(__FILE__), '../rackspace_cloudfiles.yml')
+    validates_as_attachment
+  end
 
   class S3WithPathPrefixAttachment < S3Attachment
     has_attachment :storage => :s3, :path_prefix => 'some/custom/path/prefix', :processor => :rmagick
     validates_as_attachment
   end
+  
+  class CloudFilesWithPathPrefixAttachment < CloudFilesAttachment
+    has_attachment :storage => :cloud_files, :path_prefix => 'some/custom/path/prefix', :processor => :rmagick
+    validates_as_attachment
+  end
+  
 rescue
   puts "S3 error: #{$!}"
 end
